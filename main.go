@@ -159,10 +159,10 @@ func main() {
 	}
 	bola := Bola{
 		Objecto: Objecto{
-			X: 600,
-			Y: 200,
+			X: 0,
+			Y: 0,
 			W: 15,
-			H: 100,
+			H: 15,
 		},
 	}
 	g := &Game{
