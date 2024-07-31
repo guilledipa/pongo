@@ -25,29 +25,34 @@ var (
 	arcadeFaceSource *text.GoTextFaceSource
 )
 
-type Objecto struct {
+type Objeto struct {
 	X, Y, W, H int
 }
 
 type Paleta struct {
-	Objecto
+	Objeto
 }
 
 func (p *Paleta) MoveOnKeyPress() {
-	if ebiten.IsKeyPressed(ebiten.KeyArrowDown) {
+	if ebiten.IsKeyPressed(ebiten.KeyArrowDown) && p.Y+p.H <= screenHeight {
 		p.Y += paletaSpeed
 	}
-	if ebiten.IsKeyPressed(ebiten.KeyArrowUp) {
+	if ebiten.IsKeyPressed(ebiten.KeyArrowUp) && p.Y >= 0 {
 		p.Y -= paletaSpeed
 	}
 }
 
 type Bola struct {
-	Objecto
+	Objeto
 	dxdt, dydt int // Velocidad en x e y per tick
 }
 
 func (b *Bola) Move() {
+	// Game starts
+	if b.dxdt == 0 && b.dydt == 0 {
+		b.dxdt = bolaSpeed
+		b.dydt = bolaSpeed
+	}
 	b.X += b.dxdt
 	b.Y += b.dydt
 }
@@ -113,22 +118,23 @@ func (g *Game) Reset() {
 }
 
 func (g *Game) CollideWithWall() {
-	if g.bola.X >= screenWidth {
+	if g.bola.X+g.bola.W > g.paleta.X { // Right
 		g.Reset()
 	}
-	if g.bola.X <= 0 {
+	if g.bola.X <= 0 { // Left
 		g.bola.dxdt = bolaSpeed
 	}
-	if g.bola.Y <= 0 {
+	if g.bola.Y <= 0 { // Top
 		g.bola.dydt = bolaSpeed
 	}
-	if g.bola.Y >= screenHeight {
+	if g.bola.Y+g.bola.H >= screenHeight { // Bottom
 		g.bola.dydt = -bolaSpeed
 	}
 }
 
 func (g *Game) CollideWithPaleta() {
-	if g.bola.X >= g.paleta.X && g.bola.Y >= g.paleta.Y && g.bola.Y <= g.paleta.Y+g.paleta.H {
+	// fix
+	if g.bola.X+g.bola.W >= g.paleta.X && g.bola.Y+g.bola.H > g.paleta.Y && g.bola.Y-g.bola.H < g.paleta.Y+g.paleta.H {
 		g.bola.dxdt = -g.bola.dxdt
 		g.score++
 		if g.score > g.highScore {
@@ -150,7 +156,7 @@ func main() {
 	ebiten.SetWindowSize(screenWidth, screenHeight)
 
 	paleta := Paleta{
-		Objecto: Objecto{
+		Objeto: Objeto{
 			X: 600,
 			Y: 200,
 			W: 15,
@@ -158,9 +164,9 @@ func main() {
 		},
 	}
 	bola := Bola{
-		Objecto: Objecto{
-			X: 0,
-			Y: 0,
+		Objeto: Objeto{
+			X: screenWidth / 2,
+			Y: screenHeight / 2,
 			W: 15,
 			H: 15,
 		},
