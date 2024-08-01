@@ -26,11 +26,12 @@ var (
 )
 
 type Objeto struct {
-	X, Y, W, H int
+	X, Y int
 }
 
 type Paleta struct {
 	Objeto
+	W, H int
 }
 
 func (p *Paleta) MoveOnKeyPress() {
@@ -43,8 +44,8 @@ func (p *Paleta) MoveOnKeyPress() {
 }
 
 type Bola struct {
-	Objeto
-	dxdt, dydt int // Velocidad en x e y per tick
+	Objeto            // Coordenadas centro de la bola
+	R, dxdt, dydt int // Radio, Velocidad en x e y per tick
 }
 
 func (b *Bola) Move() {
@@ -77,11 +78,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		color.White, false,
 	)
 	// Bola
-	vector.DrawFilledRect(screen,
+	vector.DrawFilledCircle(screen,
 		float32(g.bola.X), float32(g.bola.Y),
-		float32(g.bola.W), float32(g.bola.H),
-		color.White, false,
-	)
+		float32(g.bola.R),
+		color.White, false)
 	// Score
 	score := fmt.Sprintf("Score: %d", g.score)
 	op := &text.DrawOptions{}
@@ -118,23 +118,23 @@ func (g *Game) Reset() {
 }
 
 func (g *Game) CollideWithWall() {
-	if g.bola.X+g.bola.W > g.paleta.X { // Right
+	if g.bola.X+g.bola.R >= g.paleta.X+g.paleta.W { // Right
 		g.Reset()
 	}
-	if g.bola.X <= 0 { // Left
+	if g.bola.X-g.bola.R <= 0 { // Left
 		g.bola.dxdt = bolaSpeed
 	}
-	if g.bola.Y <= 0 { // Top
+	if g.bola.Y-g.bola.R <= 0 { // Top
 		g.bola.dydt = bolaSpeed
 	}
-	if g.bola.Y+g.bola.H >= screenHeight { // Bottom
+	if g.bola.Y+g.bola.R >= screenHeight { // Bottom
 		g.bola.dydt = -bolaSpeed
 	}
 }
 
 func (g *Game) CollideWithPaleta() {
 	// fix
-	if g.bola.X+g.bola.W >= g.paleta.X && g.bola.Y+g.bola.H > g.paleta.Y && g.bola.Y-g.bola.H < g.paleta.Y+g.paleta.H {
+	if g.bola.X+g.bola.R >= g.paleta.X && g.bola.Y > g.paleta.Y && g.bola.Y < g.paleta.Y+g.paleta.H {
 		g.bola.dxdt = -g.bola.dxdt
 		g.score++
 		if g.score > g.highScore {
@@ -159,17 +159,16 @@ func main() {
 		Objeto: Objeto{
 			X: 600,
 			Y: 200,
-			W: 15,
-			H: 100,
 		},
+		W: 15,
+		H: 100,
 	}
 	bola := Bola{
 		Objeto: Objeto{
 			X: screenWidth / 2,
 			Y: screenHeight / 2,
-			W: 15,
-			H: 15,
 		},
+		R: 10,
 	}
 	g := &Game{
 		paleta: paleta,
