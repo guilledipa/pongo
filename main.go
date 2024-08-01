@@ -75,8 +75,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	vector.DrawFilledRect(screen,
 		float32(g.paleta.X), float32(g.paleta.Y),
 		float32(g.paleta.W), float32(g.paleta.H),
-		color.White, false,
-	)
+		color.White, false)
 	// Bola
 	vector.DrawFilledCircle(screen,
 		float32(g.bola.X), float32(g.bola.Y),
